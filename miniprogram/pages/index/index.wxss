@@ -5,6 +5,7 @@ page {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  height: 100%;
 }
 
 .userinfo, .uploader, .tunnel {
@@ -150,4 +151,35 @@ page {
   font-size: 24rpx;
   line-height: 36rpx;
   word-break: break-all;
+}
+
+.map-view-height {
+  height: 100%;
+}
+
+.map_size {
+  height: 80%;
+}
+
+.button {
+  margin-top: 40px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007aff;
+}
+
+.pressedbutton {
+  margin-top: 40px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #000;
+}
+
+ .tellinput {
+   border: 1px solid #efeff4;
+}
+
+.tellsection input {
+  color: #000;
+  width: 100%;
 }
