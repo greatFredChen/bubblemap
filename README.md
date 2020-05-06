@@ -10,3 +10,5 @@
 
 - [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
 
+UI基于weui，请下载weui，并将weui-miniprogram文件夹放置于miniprogram文件夹下，并将weui.wxss放置于style文件夹下！
+

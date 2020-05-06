@@ -158,19 +158,19 @@ page {
 }
 
 .map_size {
-  height: 80%;
+  height: 60%;
 }
 
-.button {
+/* .button {
   margin-top: 40px;
   font-size: 16px;
   color: #fff;
   background-color: #007aff;
-}
+} */
 
 .pressedbutton {
-  margin-top: 40px;
-  font-size: 16px;
+  /* margin-top: 40px;
+  font-size: 16px; */
   color: #fff;
   background-color: #000;
 }
@@ -182,4 +182,11 @@ page {
 .tellsection input {
   color: #000;
   width: 100%;
+}
+
+.two-button-flex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }

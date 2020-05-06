@@ -1,13 +1,14 @@
 /**app.wxss**/
-.container {
+@import "style/weui.wxss";
+/* .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-} 
+}  */
 
 button {
-  background: initial;
+  margin: 5px;
 }
 
 button:focus{

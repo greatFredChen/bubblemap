@@ -11,9 +11,11 @@ Page({
     longitude: 113.0,
     latitude: 22.0,
     scale: 15,
+    selectMarkId: -1,
     markers: [],
     circles: '',
     polygons: '',
+    polyline: [],
     setting: {
       subkey: 'EEGBZ-6NYWW-6YNR5-OMCQX-H3MJH-ATFFG',
     },
@@ -24,27 +26,73 @@ Page({
     sdk_version: '',
     modified: false,
     addtellHidden: true,
-    input: undefined,
+    modifiedHidden: true,
+    input: '',
+    scale: 16,
+    buttons: [{ text: '取消' }, { text: '确定' }],
+    tappedMarker: {},
   },
 
-  // 点击marker触发事件 TODO: 如何设置label？
+  // 点击marker触发事件 修改想法
   markertap: function(e) {
-    var that = this
+    let that = this
+    console.log(e)
     if(that.data.modified == true) {
-      // 显示输入框
       that.setData({
-        addtellHidden: false
+        selectMarkId: e.detail.markerId,
+        modifiedHidden: false
       })
-      let markid = e.detail.markerId
+  }
+  },
+
+  // 修改窗口
+  tapModifiedButton: function(e) {
+    console.log(e)
+    const touch = e.detail.index
+    if (touch) {
+      // 确认
+      this.modified_callout()
+    } else {
+      // 取消
+    }
+    this.setData({
+      modifiedHidden: true,
+      modified: false
+    })
+  },
+
+  // 修改标签
+  modified_callout: function() {
+    let that = this
+    if (that.data.modified == true) {
+      let markid = that.data.selectMarkId
       let markers = that.data.markers
       let marker_len = markers.length
-      for(let i = 0; i < marker_len; i++) {
-        if(markers[i].id == markid) {
-          // TODO：如何设置label？？
+      for (let i = 0; i < marker_len; i++) {
+        if (markers[i].id == markid) {
+          // 设置label
+          markers[i].callout.content = that.data.input
           break
         }
       }
+      that.setData({
+        markers: markers
+      })
     }
+  },
+
+  tapDialogButton (e) {
+    console.log(e)
+    const touch = e.detail.index
+    if (touch) {
+      // 确认
+      this.place_marker(this.data.tappedMarker)
+    } else {
+      // 取消
+    }
+    this.setData({
+      addtellHidden: true
+    })
   },
 
   // 取消输入
@@ -67,8 +115,7 @@ Page({
   // bindinput 每次修改输入框都会激活
   saveUsertell: function(e) {
     this.setData({
-      input: e.detail.value,
-      addtellHidden: false
+      input: e.detail.value
     })
   },
 
@@ -80,63 +127,73 @@ Page({
   },
 
   // 放置marker label
-  place_marker: function(e) {
+  place_marker: async function(e) {
     let that = this
     let markers = that.data.markers
     let mlen = markers.length
     console.log(e)
-    if(that.compareVersion(that.data.sdk_version, "2.9.0")) {
-        let latitude = e.detail.latitude
-        let longitude = e.detail.longitude
-        let marker = {
-          latitude: latitude,
-          longitude: longitude,
-          id: mlen,
-          callout: {
-            content: "What do you think?",
-            color: "#ffffff",
-            fontSize: 16,
-            bgColor: "#000000",
-          }
+    if (that.compareVersion(that.data.sdk_version, "2.9.0")) {
+      let latitude = e.detail.latitude
+      let longitude = e.detail.longitude
+      let scale = await wx.createMapContext('testmap').getScale()
+      let marker = {
+        latitude: latitude,
+        longitude: longitude,
+        id: mlen,
+        iconPath: '1.png', // 默认的图标不能放大
+        like: 0,
+        width: this.suitWH(0, scale.scale),
+        height: this.suitWH(0, scale.scale),
+        callout: {
+          content: this.data.input,
+          color: "#000",
+          fontSize: 16,
+          bgColor: "#00000000",
         }
-        markers.push(marker)
-        that.setData({
-          markers: markers
-        })
-        console.log("success! A marker is set.")
-    }
-    else {
-      wx.chooseLocation({
-      success: function(res) {
-        let marker = {
-          latitude: res.latitude,
-          longitude: res.longitude,
-          id: mlen,
-          callout: {
-            content: "What do you think?",
-            color: "#ffffff",
-            fontSize: 16,
-            bgColor: "#000000",
-          }
-        }
-        markers.push(marker)
-        that.setData({
-          markers: markers
-        })
-        console.log("success! A marker is set.")
-      },
-      fail: function(res) {
-        console.log("fail to set a marker!")
       }
-    })
+      markers.push(marker)
+      that.setData({
+        markers: markers
+      })
+      console.log("success! A marker is set.")
+      console.log(this.data.markers)
+    } else {
+      wx.chooseLocation({
+        success: function(res) {
+          let marker = {
+            latitude: res.latitude,
+            longitude: res.longitude,
+            id: mlen,
+            callout: {
+              content: "What do you think?",
+              color: "#ffffff",
+              fontSize: 16,
+              bgColor: "#000000",
+            }
+          }
+          markers.push(marker)
+          that.setData({
+            markers: markers
+          })
+          console.log("success! A marker is set.")
+          console.log(this.data.markers)
+        },
+        fail: function(res) {
+          console.log("fail to set a marker!")
+        }
+      })
     }
   },
 
   // 点击地图触发
   clickmap: function(e) {
-    let that = this
     // 放置marker label
-    that.place_marker(e)
+    this.setData({
+      addtellHidden: false,
+      tappedMarker: e,
+      modified: false,
+      modifiedHidden: true  // 强制取消修改模式
+    })
   },
 
   // 比较版本号 version1 >= version2时返回true
@@ -144,32 +201,60 @@ Page({
     let v1 = version1.split('.') // array
     let v2 = version2.split('.') // array
     let len = Math.max(v1.length, v2.length)
-    while(v1.length < len) {
+    while (v1.length < len) {
       v1.push('0')
     }
-    while(v2.length < len) {
+    while (v2.length < len) {
       v2.push('0')
     }
     // 比较每一位
-    for(let i = 0; i < len; i++) {
+    for (let i = 0; i < len; i++) {
       let num1 = parseInt(v1[i])
       let num2 = parseInt(v2[i])
-      if(num1 < num2) {
+      if (num1 < num2) {
         return false // version1 < version2
-      }
-      else if(num1 > num2){
+      } else if (num1 > num2) {
         return true // version1 > version2
       }
     }
     return true // version1 == version2
   },
 
+  suitWH(cnt, scale) {
+    const base = 40.0;
+    const scaleBase = 20.0;
+    // const iter = Math.log10;
+    const iter = (i) => Math.max(1, i)
+    return iter(cnt) * base * scale * scale / scaleBase / scaleBase
+  },
+
+  bindupdated(e) {
+    console.log(e)
+  },
+
   // 移动地图触发
   regionchange: function(e) {
     let that = this
-    // console.log(e)
-    // 获取地图中心坐标
     let mapInstance = wx.createMapContext('testmap')
+    if (e.causedBy === 'scale' && e.type === 'end') {
+      // 缩放完成
+      const markers = this.data.markers
+      mapInstance.getScale({
+        success(res) {
+          console.log(res)
+          const scale = res.scale
+          for (let m of markers) {
+            m.width = that.suitWH(m.like, scale)
+            m.height = that.suitWH(m.like, scale)
+            console.log(m.width)
+          }
+          that.setData({
+            markers: markers,
+          })
+        }
+      })
+    }
+    // 获取地图中心坐标
     // console.log(mapInstance)
     mapInstance.getCenterLocation({
       success: function(res) {
@@ -181,8 +266,57 @@ Page({
             latitude: latitude,
             longitude: longitude
           })
+        }
       }
+    })
+  },
+
+  async onLike(e) {
+    // 点赞按钮被按下
+    const id = e.detail.id
+    const markers = this.data.markers;
+    const idx = markers.findIndex(obj => obj.id === id)
+    if (idx === -1) return -1
+    const obj = markers[idx]
+    obj.like = obj.like ? obj.like + 1 : 1;
+    let scale = await wx.createMapContext('testmap').getScale()
+    obj.width = this.suitWH(obj.like, scale.scale)
+    obj.height = this.suitWH(obj.like, scale.scale)
+    this.setData({
+      markers: markers,
+    })
+    // 下面这种更新失败了
+    // const key = `markers[${idx}]`
+    // this.setData({
+    //   key: obj
+    // })
+    // console.log(this.data.markers)
+  },
+
+  onLink(e) {
+    const arr1 = []
+    const arr2 = []
+    for (let m of this.data.markers) {
+      let arr = Math.random() > .5 ? arr1 : arr2
+      arr.push({
+        latitude: m.latitude,
+        longitude: m.longitude
+      })
     }
+    const polyline = [{
+      points: arr1,
+      color: "#FF0000DD",
+      width: 2,
+      dottedLine: true
+    }, {
+      points: arr2,
+      color: "#FF0000DD",
+      width: 2,
+      dottedLine: true
+    }]
+    console.log(polyline)
+    this.setData({
+      polyline: polyline,
     })
   },
 
@@ -215,7 +349,7 @@ Page({
 
     // 获取用户坐标
     wx.getLocation({
-      type:'gcj02',
+      type: 'gcj02',
       success(res) {
         that.setData({
           longitude: res.longitude,
@@ -281,20 +415,20 @@ Page({
   },
 
   // 上传图片
-  doUpload: function () {
+  doUpload: function() {
     // 选择图片
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: function (res) {
+      success: function(res) {
 
         wx.showLoading({
           title: '上传中',
         })
 
         const filePath = res.tempFilePaths[0]
-        
+
         // 上传图片
         const cloudPath = 'my-image' + filePath.match(/\.[^.]+?$/)[0]
         wx.cloud.uploadFile({
@@ -306,7 +440,7 @@ Page({
             app.globalData.fileID = res.fileID
             app.globalData.cloudPath = cloudPath
             app.globalData.imagePath = filePath
-            
+
             wx.navigateTo({
               url: '../storageConsole/storageConsole'
             })
@@ -329,5 +463,4 @@ Page({
       }
     })
   },
-
 })

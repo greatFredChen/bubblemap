@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<view class="container map-view-height">
+<view class="container map-view-height page__bd page__bd_spacing">
   <!--<view class="userinfo">
     <button 
       open-type="getUserInfo" 
@@ -45,19 +45,30 @@
       <text>云调用</text>
     </navigator>
   </view>-->
-  <map id="testmap" class="map_size" longitude="{{longitude}}" latitude="{{latitude}}"
-  scale="{{scale}}" setting="{{setting}}" bindtap="clickmap" 
-  bindregionchange="regionchange" bindmarkertap="markertap"
-  show-location="true" markers="{{markers}}"></map>
-  <button class="{{modified? 'pressedbutton': 'button'}}" bindtap="pressbutton" 
-  disabled="{{modified? true: false}}">修改模式</button>
-  <view>
-      <modal title="输入想法" confirm-text="确认" cancel-text="取消" hidden="{{addtellHidden}}" bindconfirm="modalConfirm" bindcancel="modalCancel">
-        <label>
-          <view class="tellsection">
-            <input class="tellinput" bindinput="saveUsertell" placeholder="输入想法" />
-          </view>
-        </label>
-     </modal>
-   </view>
+  <map id="testmap" class="map_size" longitude="{{longitude}}" latitude="{{latitude}}" scale="{{scale}}" setting="{{setting}}" bindtap="clickmap" bindupdated="bindupdated" bindregionchange="regionchange" bindmarkertap="markertap" show-location="true" markers="{{markers}}" polyline="{{polyline}}"
+    scale="{{scale}}"></map>
+  <detail hide="false" markid="{{selectMarkId}}" bind:like="onLike"></detail>
+  <view class="two-button-flex">
+      <!-- <button class="{{modified? 'pressedbutton weui-flex__item': 'weui-btn weui-btn_default weui-flex__item'}}" bindtap="pressbutton" disabled="{{modified? true: false}}">修改模式</button> -->
+      <button class="weui-btn weui-btn_primary" bindtap="onLink">随机连线</button>
+      <button class="weui-btn weui-btn_primary" bindtap="pressbutton" 
+      disabled="{{modified? true: false}}">修改模式</button>
+  </view>
+  <!-- <view>
+    <modal title="输入想法" confirm-text="确认" cancel-text="取消" hidden="{{addtellHidden}}" bindconfirm="modalConfirm" bindcancel="modalCancel">
+      <label>
+        <view class="tellsection">
+          <input class="tellinput" bindinput="saveUsertell" placeholder="输入想法" />
+        </view>
+      </label>
+    </modal>
+  </view> -->
+    <mp-dialog title="输入想法" show="{{!addtellHidden}}" bindbuttontap="tapDialogButton" buttons="{{buttons}}">
+        <view>test content</view>
+        <input class="tellinput" bindinput="saveUsertell" placeholder="输入想法" />
+    </mp-dialog>
+    <mp-dialog title="修改想法" show="{{!modifiedHidden}}" bindbuttontap="tapModifiedButton" buttons="{{buttons}}">
+        <view>test modified</view>
+        <input class="tellinput" bindinput="saveUsertell" placeholder="输入想法" />
+    </mp-dialog>
 </view>
